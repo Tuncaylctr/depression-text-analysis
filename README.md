@@ -1,4 +1,4 @@
-# 🧠 Depression Text Analysis
+# Depression Text Analysis
 
 This project explores linguistic patterns in **conversation transcripts between psychologists and patients** to understand correlations between word usage and depression levels.
 
