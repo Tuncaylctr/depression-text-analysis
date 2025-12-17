@@ -1,1 +1,82 @@
+# =============================
+# Data Analysis Project .gitignore
+# =============================
+
+# --- OS / Editor files ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+.vscode/
+.idea/
+
+# --- Python cache / build ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# --- Virtual environments ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- Jupyter / IPython ---
+.ipynb_checkpoints/
+profile_default/
+
+# --- Data files (raw & processed) ---
+# Keep data out of git; track samples separately if needed
+/data/
+/raw_data/
+/processed_data/
+/interim/
+*.csv
+*.tsv
+*.xlsx
+*.parquet
+*.feather
+*.json
+*.xml
+
+# --- Large / binary files ---
+*.h5
+*.hdf5
+*.pkl
+*.joblib
+*.zip
+*.tar
+*.gz
+
+# --- ML / experiment outputs ---
+/models/
+/checkpoints/
+/logs/
+/runs/
+/mlruns/
+wandb/
+
+# --- Reports / exports ---
+/reports/*.pdf
+/reports/*.html
+/reports/*.png
+/reports/*.jpg
+
+# --- Environment / secrets ---
+.env
+.env.*
+*.key
+*.pem
+
+# --- Database files ---
+*.db
+*.sqlite
+*.sqlite3
+
 
