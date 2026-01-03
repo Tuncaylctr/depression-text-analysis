@@ -33,3 +33,22 @@ FIGURE_SIZE = (12, 6)
 
 # Random seed for reproducibility
 RANDOM_SEED = 42
+
+# Advanced analysis features
+ENABLE_TFIDF = True
+ENABLE_NGRAMS = True
+ENABLE_SENTIMENT = True
+ENABLE_WORDCLOUDS = True
+
+# TF-IDF parameters
+TFIDF_MAX_FEATURES = 100
+TFIDF_MIN_DF = 2
+TFIDF_MAX_DF = 0.8
+
+# N-gram parameters
+NGRAM_RANGE = (2, 3)  # (min_n, max_n) - bigrams and trigrams
+TOP_NGRAMS = 20
+
+# Sentiment analysis
+SENTIMENT_METHOD = 'lexicon'  # 'lexicon' or 'vader' (if available)
+

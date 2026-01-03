@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent / 'src'))
 from data_loader import DataLoader
 from text_preprocessing import TextPreprocessor, CustomStopwords
 from frequency_analysis import WordFrequencyAnalyzer, CorrelationAnalyzer
+from advanced_analysis import TFIDFAnalyzer, NGramAnalyzer, SentimentAnalyzer, StatisticalTester
 from visualization import DataVisualizer
 import config
 
@@ -37,6 +38,9 @@ class DepressionTextAnalysis:
         )
         self.freq_analyzer = WordFrequencyAnalyzer(config.MIN_WORD_FREQUENCY)
         self.corr_analyzer = None
+        self.tfidf_analyzer = None
+        self.ngram_analyzer = None
+        self.sentiment_analyzer = None
         
         self.corpus_df = None
         self.processed_tokens = None
@@ -335,6 +339,209 @@ class DepressionTextAnalysis:
         metadata_df.to_csv(metadata_path, index=False)
         print(f"Saved metadata: {metadata_path}")
     
+    def step8_tfidf_analysis(self):
+        """
+        Step 8: TF-IDF Analysis (Advanced Technique #1).
+        """
+        if not config.ENABLE_TFIDF:
+            print("\nSkipping TF-IDF analysis (disabled in config)")
+            return
+        
+        print("\n" + "="*60)
+        print("STEP 8: TF-IDF Analysis")
+        print("="*60)
+        print("\nWeighting words by importance across documents...")
+        
+        # Initialize TF-IDF analyzer
+        self.tfidf_analyzer = TFIDFAnalyzer(
+            max_features=config.TFIDF_MAX_FEATURES,
+            min_df=config.TFIDF_MIN_DF,
+            max_df=config.TFIDF_MAX_DF
+        )
+        
+        # Fit and transform
+        texts = self.corpus_df['text'].values
+        self.tfidf_analyzer.fit_transform(texts)
+        
+        print(f"TF-IDF matrix shape: {self.tfidf_analyzer.tfidf_matrix.shape}")
+        
+        # Get top features by group
+        phq_binary = self.corpus_df['PHQ_Binary'].values
+        top_features = self.tfidf_analyzer.get_top_features_by_group(phq_binary, n=10)
+        
+        print("\n--- Top TF-IDF Features by Group ---")
+        for group, features in top_features.items():
+            group_label = "Depressed" if group == 1 else "Non-Depressed"
+            print(f"\n{group_label} (Group {group}):")
+            for i, (feature, score) in enumerate(features, 1):
+                print(f"  {i:2d}. {feature:15s} - TF-IDF: {score:.4f}")
+        
+        # Create feature importance DataFrame
+        tfidf_df = self.tfidf_analyzer.get_feature_importance_df(phq_binary)
+        
+        # Save results
+        tfidf_path = Path(config.RESULTS_DIR) / "tfidf_features.csv"
+        tfidf_df.to_csv(tfidf_path, index=False)
+        print(f"\nSaved TF-IDF features: {tfidf_path}")
+        
+        # Create heatmap visualization
+        fig_path = Path(config.FIGURES_DIR) / "06_tfidf_heatmap.png"
+        DataVisualizer.plot_tfidf_heatmap(tfidf_df, n_features=20, save_path=str(fig_path))
+        print(f"Saved TF-IDF heatmap: {fig_path}")
+    
+    def step9_ngram_analysis(self):
+        """
+        Step 9: N-gram Analysis (Advanced Technique #2).
+        """
+        if not config.ENABLE_NGRAMS:
+            print("\nSkipping N-gram analysis (disabled in config)")
+            return
+        
+        print("\n" + "="*60)
+        print("STEP 9: N-gram Analysis")
+        print("="*60)
+        print("\nAnalyzing word sequences (bigrams and trigrams)...")
+        
+        phq_binary = self.corpus_df['PHQ_Binary'].values
+        
+        # Analyze bigrams
+        print("\n--- Bigram Analysis ---")
+        self.ngram_analyzer = NGramAnalyzer(n=2)
+        self.ngram_analyzer.compute_ngrams_by_group(self.processed_tokens, phq_binary)
+        
+        top_bigrams_0 = self.ngram_analyzer.get_top_ngrams(n=config.TOP_NGRAMS, group=0)
+        top_bigrams_1 = self.ngram_analyzer.get_top_ngrams(n=config.TOP_NGRAMS, group=1)
+        
+        print("\nTop Bigrams - Non-Depressed:")
+        for i, (ngram, freq) in enumerate(top_bigrams_0[:10], 1):
+            print(f"  {i:2d}. '{ngram}' - {freq} occurrences")
+        
+        print("\nTop Bigrams - Depressed:")
+        for i, (ngram, freq) in enumerate(top_bigrams_1[:10], 1):
+            print(f"  {i:2d}. '{ngram}' - {freq} occurrences")
+        
+        # Get distinctive bigrams
+        distinctive_bigrams = self.ngram_analyzer.get_distinctive_ngrams(1, 0, n=10)
+        print("\nMost Distinctive Bigrams:")
+        print("  More in Depressed:", [ng for ng, _ in distinctive_bigrams[0][:5]])
+        print("  More in Non-Depressed:", [ng for ng, _ in distinctive_bigrams[1][:5]])
+        
+        # Save bigrams
+        bigrams_df = pd.DataFrame({
+            'bigram': [ng for ng, _ in top_bigrams_0 + top_bigrams_1],
+            'frequency': [freq for _, freq in top_bigrams_0 + top_bigrams_1],
+            'group': [0]*len(top_bigrams_0) + [1]*len(top_bigrams_1)
+        })
+        bigrams_path = Path(config.RESULTS_DIR) / "bigrams.csv"
+        bigrams_df.to_csv(bigrams_path, index=False)
+        print(f"\nSaved bigrams: {bigrams_path}")
+        
+        # Create visualization
+        fig_path = Path(config.FIGURES_DIR) / "07_ngram_comparison.png"
+        DataVisualizer.plot_ngram_comparison(
+            top_bigrams_0, top_bigrams_1,
+            group1_label="Non-Depressed",
+            group2_label="Depressed",
+            n=15,
+            save_path=str(fig_path)
+        )
+        print(f"Saved N-gram comparison: {fig_path}")
+        
+        # Analyze trigrams
+        print("\n--- Trigram Analysis ---")
+        trigram_analyzer = NGramAnalyzer(n=3)
+        trigram_analyzer.compute_ngrams_by_group(self.processed_tokens, phq_binary)
+        
+        top_trigrams_0 = trigram_analyzer.get_top_ngrams(n=5, group=0)
+        top_trigrams_1 = trigram_analyzer.get_top_ngrams(n=5, group=1)
+        
+        print("\nTop Trigrams - Non-Depressed:")
+        for i, (ngram, freq) in enumerate(top_trigrams_0, 1):
+            print(f"  {i}. '{ngram}' - {freq}")
+        
+        print("\nTop Trigrams - Depressed:")
+        for i, (ngram, freq) in enumerate(top_trigrams_1, 1):
+            print(f"  {i}. '{ngram}' - {freq}")
+    
+    def step10_sentiment_analysis(self):
+        """
+        Step 10: Sentiment Analysis (Advanced Technique #3).
+        """
+        if not config.ENABLE_SENTIMENT:
+            print("\nSkipping sentiment analysis (disabled in config)")
+            return
+        
+        print("\n" + "="*60)
+        print("STEP 10: Sentiment Analysis")
+        print("="*60)
+        print("\nAnalyzing emotional tone of texts...")
+        
+        # Initialize sentiment analyzer
+        self.sentiment_analyzer = SentimentAnalyzer()
+        
+        # Analyze sentiment
+        phq_binary = self.corpus_df['PHQ_Binary'].values
+        sentiment_df = self.sentiment_analyzer.analyze_batch(self.processed_tokens)
+        sentiment_df['group'] = phq_binary
+        
+        # Compare by group
+        sentiment_by_group = self.sentiment_analyzer.compare_by_group(
+            self.processed_tokens, phq_binary
+        )
+        
+        print("\n--- Mean Sentiment Scores by Group ---")
+        print(sentiment_by_group)
+        
+        # Statistical test
+        print("\n--- Statistical Significance ---")
+        for col in ['positive', 'negative', 'compound']:
+            group0_vals = sentiment_df[sentiment_df['group'] == 0][col].values
+            group1_vals = sentiment_df[sentiment_df['group'] == 1][col].values
+            u_stat, p_value = StatisticalTester.mann_whitney_test(group0_vals, group1_vals)
+            cohens_d = StatisticalTester.cohens_d(group0_vals, group1_vals)
+            print(f"  {col.capitalize():10s}: p={p_value:.4f}, Cohen's d={cohens_d:+.3f}")
+        
+        # Save results
+        sentiment_path = Path(config.RESULTS_DIR) / "sentiment_scores.csv"
+        sentiment_df.to_csv(sentiment_path, index=False)
+        print(f"\nSaved sentiment scores: {sentiment_path}")
+        
+        # Create visualizations
+        fig_path = Path(config.FIGURES_DIR) / "08_sentiment_comparison.png"
+        DataVisualizer.plot_sentiment_comparison(sentiment_by_group, save_path=str(fig_path))
+        print(f"Saved sentiment comparison: {fig_path}")
+    
+    def step11_word_clouds(self):
+        """
+        Step 11: Generate Word Clouds for Visual Exploration.
+        """
+        if not config.ENABLE_WORDCLOUDS:
+            print("\nSkipping word clouds (disabled in config)")
+            return
+        
+        print("\n" + "="*60)
+        print("STEP 11: Word Cloud Visualizations")
+        print("="*60)
+        
+        phq_binary = self.corpus_df['PHQ_Binary'].values
+        
+        # Create word clouds for each group
+        for group in [0, 1]:
+            group_label = "Non-Depressed" if group == 0 else "Depressed"
+            print(f"\nGenerating word cloud for {group_label} group...")
+            
+            # Get word frequencies for this group
+            if group in self.freq_analyzer.word_freq_by_group:
+                word_freq = dict(self.freq_analyzer.word_freq_by_group[group])
+                
+                fig_path = Path(config.FIGURES_DIR) / f"09_wordcloud_group{group}.png"
+                DataVisualizer.plot_wordcloud(
+                    word_freq,
+                    title=f"Word Cloud: {group_label} Group",
+                    save_path=str(fig_path)
+                )
+                print(f"Saved word cloud: {fig_path}")
+    
     def run_full_analysis(self):
         """Run complete analysis pipeline."""
         print("\n" + "="*70)
@@ -344,9 +551,10 @@ class DepressionTextAnalysis:
         print("  1. Start with simple word frequency distributions")
         print("  2. Look for correlations with depression levels")
         print("  3. Gradually move to advanced techniques")
+        print("\nPipeline: 11 steps (7 basic + 4 advanced)")
         
         try:
-            # Execute all steps
+            # Execute basic analysis steps (1-7)
             self.step1_load_and_explore_data()
             self.step2_preprocess_text()
             self.step3_word_frequency_analysis()
@@ -354,6 +562,15 @@ class DepressionTextAnalysis:
             self.step5_correlation_analysis()
             self.step6_additional_visualizations()
             self.step7_save_results()
+            
+            # Execute advanced analysis steps (8-11)
+            print("\n" + "="*60)
+            print("ADVANCED ANALYSIS TECHNIQUES")
+            print("="*60)
+            self.step8_tfidf_analysis()
+            self.step9_ngram_analysis()
+            self.step10_sentiment_analysis()
+            self.step11_word_clouds()
             
             print("\n" + "="*70)
             print("ANALYSIS COMPLETE!")

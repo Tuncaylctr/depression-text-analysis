@@ -1,0 +1,369 @@
+[nltk_data] Error loading wordnet: <urlopen error [SSL:
+[nltk_data]     CERTIFICATE_VERIFY_FAILED] certificate verify failed:
+[nltk_data]     unable to get local issuer certificate (_ssl.c:1028)>
+
+======================================================================
+  DEPRESSION TEXT ANALYSIS - WORD FREQUENCY & CORRELATION ANALYSIS
+======================================================================
+
+Approach: Following professor's recommendations
+  1. Start with simple word frequency distributions
+  2. Look for correlations with depression levels
+  3. Gradually move to advanced techniques
+
+Pipeline: 11 steps (7 basic + 4 advanced)
+
+============================================================
+STEP 1: Loading and Exploring Data
+============================================================
+
+Loaded 189 participant labels
+Columns: ['Participant_ID', 'PHQ_Score', 'PHQ_Binary']
+
+--- Corpus Statistics ---
+  n_total_participants: 189
+  n_depressed: 57
+  n_non_depressed: 132
+  mean_phq_score: 6.746031746031746
+  max_phq_score: 23
+  min_phq_score: 0
+
+--- Sample Participants ---
+
+  Participant 300 (PHQ Score: 2, Binary: 0)
+  Text: good atlanta georgia um my parents are from here um i love it i like the weather i like the opportun...
+
+  Participant 301 (PHQ Score: 3, Binary: 0)
+  Text: thank you mmm k i'm doing good thank you i'm from los angeles oh great i live in west los angeles th...
+
+  Participant 302 (PHQ Score: 4, Binary: 0)
+  Text: i'm fine how about yourself  i'm from los angeles california what part  okay  um all my family's her...
+
+============================================================
+STEP 2: Text Preprocessing
+============================================================
+
+Preprocessing 189 texts...
+  - Remove stopwords: True
+  - Lemmatize: False
+
+--- Preprocessing Results ---
+  Total documents: 189
+  Avg tokens per document: 756.4
+  Max tokens in a document: 2108
+  Min tokens in a document: 109
+
+--- Sample Preprocessing ---
+
+  Original text:
+    good atlanta georgia um my parents are from here um i love it i like the weather i like the opportunities um yes um it took a minute somewhat easy con...
+
+  Processed tokens (first 20):
+    ['good', 'atlanta', 'georgia', 'um', 'parents', 'um', 'love', 'like', 'weather', 'like', 'opportunities', 'um', 'yes', 'um', 'took', 'minute', 'somewhat', 'easy', 'congestion', 'thats']
+
+============================================================
+STEP 3: Word Frequency Analysis
+============================================================
+
+This is the simplest and recommended starting point
+
+Computing word frequencies...
+
+Vocabulary size (min frequency 2): 4799 unique words
+Total word occurrences: 139278
+
+--- Top 20 Most Frequent Words ---
+   1. um              - 7235 occurrences
+   2. uh              - 5413 occurrences
+   3. know            - 3613 occurrences
+   4. like            - 3524 occurrences
+   5. im              - 3038 occurrences
+   6. dont            - 1963 occurrences
+   7. really          - 1823 occurrences
+   8. laughter        - 1565 occurrences
+   9. yeah            - 1292 occurrences
+  10. think           - 1254 occurrences
+  11. well            - 1164 occurrences
+  12. people          - 1151 occurrences
+  13. good            - 1130 occurrences
+  14. things          - 1064 occurrences
+  15. get             -  993 occurrences
+  16. thats           -  949 occurrences
+  17. lot             -  939 occurrences
+  18. ive             -  897 occurrences
+  19. time            -  890 occurrences
+  20. go              -  846 occurrences
+
+Saved: output/figures/01_top_words.png
+
+============================================================
+STEP 4: Word Frequency by Depression Status
+============================================================
+
+--- Top Words in Non-Depressed Group (PHQ_Binary=0) ---
+   1. um              - 5071
+   2. uh              - 4123
+   3. know            - 2660
+   4. like            - 2391
+   5. im              - 2060
+   6. dont            - 1280
+   7. really          - 1199
+   8. laughter        - 1026
+   9. think           -  869
+  10. yeah            -  846
+
+--- Top Words in Depressed Group (PHQ_Binary=1) ---
+   1. um              - 2164
+   2. uh              - 1290
+   3. like            - 1133
+   4. im              -  978
+   5. know            -  953
+   6. dont            -  683
+   7. really          -  624
+   8. laughter        -  539
+   9. yeah            -  446
+  10. well            -  421
+
+--- Words that Differentiate Groups ---
+
+More common in Non-Depressed:
+  party           (ratio: 14.00x)
+  body            (ratio: 12.00x)
+  forward         (ratio: 11.00x)
+  mexico          (ratio: 10.67x)
+  aware           (ratio: 10.50x)
+  europe          (ratio: 10.00x)
+  chance          (ratio: 9.50x)
+  warm            (ratio: 9.50x)
+  summer          (ratio: 9.50x)
+  basis           (ratio: 9.00x)
+
+More common in Depressed:
+  wound           (ratio: 5.00x)
+  scary           (ratio: 5.00x)
+  psychiatrist    (ratio: 3.75x)
+  yawning         (ratio: 3.50x)
+  attacks         (ratio: 3.00x)
+  trigger         (ratio: 3.00x)
+  yell            (ratio: 3.00x)
+  culver          (ratio: 3.00x)
+  exhusband       (ratio: 3.00x)
+  crying          (ratio: 3.00x)
+
+Saved: output/figures/02_frequency_comparison.png
+
+============================================================
+STEP 5: Correlation Analysis
+============================================================
+
+Analyzing correlations with point-biserial method...
+Built frequency matrix: (189, 4799)
+
+--- Top Words Positively Correlated with Depression ---
+(Higher frequency = more likely depressed)
+   1. couldnt         - correlation: +0.2780
+   2. depressed       - correlation: +0.2774
+   3. tools           - correlation: +0.2755
+   4. forget          - correlation: +0.2719
+   5. psychiatrist    - correlation: +0.2554
+   6. therapist       - correlation: +0.2548
+   7. helped          - correlation: +0.2520
+   8. considering     - correlation: +0.2509
+   9. help            - correlation: +0.2462
+  10. sleep           - correlation: +0.2461
+  11. therapy         - correlation: +0.2443
+  12. diagnosed       - correlation: +0.2337
+  13. anymore         - correlation: +0.2310
+  14. night           - correlation: +0.2308
+  15. strike          - correlation: +0.2238
+  16. impossible      - correlation: +0.2238
+  17. please          - correlation: +0.2196
+  18. police          - correlation: +0.2112
+  19. inside          - correlation: +0.2103
+  20. hard            - correlation: +0.2100
+  21. pleasure        - correlation: +0.2098
+  22. awful           - correlation: +0.2098
+  23. messed          - correlation: +0.2018
+  24. medication      - correlation: +0.1991
+  25. points          - correlation: +0.1958
+
+--- Top Words Negatively Correlated with Depression ---
+(Higher frequency = less likely depressed)
+   1. synch           - correlation: -0.2496
+   2. brother         - correlation: -0.1827
+   3. travel          - correlation: -0.1722
+   4. cultures        - correlation: -0.1674
+   5. siblings        - correlation: -0.1634
+   6. food            - correlation: -0.1611
+   7. dream           - correlation: -0.1600
+   8. played          - correlation: -0.1576
+   9. pretty          - correlation: -0.1570
+  10. party           - correlation: -0.1560
+  11. stayed          - correlation: -0.1543
+  12. bout            - correlation: -0.1537
+  13. space           - correlation: -0.1510
+  14. good            - correlation: -0.1505
+  15. one             - correlation: -0.1497
+  16. country         - correlation: -0.1460
+  17. body            - correlation: -0.1456
+  18. gym             - correlation: -0.1453
+  19. learning        - correlation: -0.1437
+  20. forward         - correlation: -0.1437
+  21. daily           - correlation: -0.1424
+  22. traumatic       - correlation: -0.1418
+  23. work            - correlation: -0.1414
+  24. express         - correlation: -0.1411
+  25. swim            - correlation: -0.1411
+
+Saved: output/figures/03_correlations.png
+
+============================================================
+STEP 6: Additional Visualizations
+============================================================
+
+Creating PHQ distribution plot...
+Saved: output/figures/04_phq_distribution.png
+Creating text length distribution plot...
+Saved: output/figures/05_text_length_distribution.png
+
+============================================================
+STEP 7: Saving Results
+============================================================
+
+Saved corpus: output/results/corpus_with_tokens.csv
+Saved word frequencies: output/results/word_frequencies.csv
+Saved correlations: output/results/word_correlations.csv
+Saved metadata: output/results/metadata.csv
+
+============================================================
+ADVANCED ANALYSIS TECHNIQUES
+============================================================
+
+============================================================
+STEP 8: TF-IDF Analysis
+============================================================
+
+Weighting words by importance across documents...
+TF-IDF matrix shape: (189, 100)
+
+--- Top TF-IDF Features by Group ---
+
+Non-Depressed (Group 0):
+   1. sigh            - TF-IDF: 0.1213
+   2. she             - TF-IDF: 0.1162
+   3. mm              - TF-IDF: 0.1152
+   4. he              - TF-IDF: 0.1151
+   5. guess           - TF-IDF: 0.1042
+   6. different       - TF-IDF: 0.0958
+   7. because         - TF-IDF: 0.0920
+   8. say             - TF-IDF: 0.0912
+   9. could           - TF-IDF: 0.0876
+  10. feel            - TF-IDF: 0.0869
+
+Depressed (Group 1):
+   1. she             - TF-IDF: 0.1473
+   2. sigh            - TF-IDF: 0.1330
+   3. he              - TF-IDF: 0.1198
+   4. mm              - TF-IDF: 0.1141
+   5. mean            - TF-IDF: 0.1022
+   6. because         - TF-IDF: 0.0994
+   7. then            - TF-IDF: 0.0946
+   8. feel            - TF-IDF: 0.0939
+   9. hard            - TF-IDF: 0.0937
+  10. guess           - TF-IDF: 0.0926
+
+Saved TF-IDF features: output/results/tfidf_features.csv
+Saved TF-IDF heatmap: output/figures/06_tfidf_heatmap.png
+
+============================================================
+STEP 9: N-gram Analysis
+============================================================
+
+Analyzing word sequences (bigrams and trigrams)...
+
+--- Bigram Analysis ---
+
+Top Bigrams - Non-Depressed:
+   1. 'dont know' - 382 occurrences
+   2. 'um uh' - 230 occurrences
+   3. 'wan na' - 214 occurrences
+   4. 'uh uh' - 201 occurrences
+   5. 'um know' - 197 occurrences
+   6. 'um im' - 175 occurrences
+   7. 'laughter um' - 174 occurrences
+   8. 'gon na' - 158 occurrences
+   9. 'pretty good' - 146 occurrences
+  10. 'little bit' - 145 occurrences
+
+Top Bigrams - Depressed:
+   1. 'dont know' - 216 occurrences
+   2. 'laughter um' - 91 occurrences
+   3. 'um im' - 87 occurrences
+   4. 'wan na' - 75 occurrences
+   5. 'gon na' - 73 occurrences
+   6. 'years ago' - 71 occurrences
+   7. 'um dont' - 70 occurrences
+   8. 'um well' - 66 occurrences
+   9. 'um uh' - 65 occurrences
+  10. 'little bit' - 65 occurrences
+
+Most Distinctive Bigrams:
+  More in Depressed: ['nan nan', 'excuse maam', 'like xxx', 'good mom', 'go really']
+  More in Non-Depressed: ['im one', 'one one', 'right away', 'happy know', 'something else']
+
+Saved bigrams: output/results/bigrams.csv
+Saved N-gram comparison: output/figures/07_ngram_comparison.png
+
+--- Trigram Analysis ---
+
+Top Trigrams - Non-Depressed:
+  1. 'um dont know' - 68
+  2. 'im gon na' - 58
+  3. 'im pretty good' - 43
+  4. 'dont wan na' - 34
+  5. 'twenty years ago' - 33
+
+Top Trigrams - Depressed:
+  1. 'um dont know' - 44
+  2. 'uh dont know' - 20
+  3. 'nan nan nan' - 20
+  4. 'dont know dont' - 18
+  5. 'im gon na' - 17
+
+============================================================
+STEP 10: Sentiment Analysis
+============================================================
+
+Analyzing emotional tone of texts...
+
+--- Mean Sentiment Scores by Group ---
+       positive  negative   neutral  compound
+group                                        
+0      0.035723  0.011728  0.952550  0.023995
+1      0.034335  0.015231  0.950434  0.019104
+
+--- Statistical Significance ---
+  Positive  : p=0.4823, Cohen's d=+0.104
+  Negative  : p=0.0019, Cohen's d=-0.559
+  Compound  : p=0.0302, Cohen's d=+0.350
+
+Saved sentiment scores: output/results/sentiment_scores.csv
+Saved sentiment comparison: output/figures/08_sentiment_comparison.png
+
+============================================================
+STEP 11: Word Cloud Visualizations
+============================================================
+
+Generating word cloud for Non-Depressed group...
+Saved word cloud: output/figures/09_wordcloud_group0.png
+
+Generating word cloud for Depressed group...
+Saved word cloud: output/figures/09_wordcloud_group1.png
+
+======================================================================
+ANALYSIS COMPLETE!
+======================================================================
+
+Output files saved to:
+  Figures: /Users/macbook/Desktop/depression-text-analysis/output/figures
+  Results: /Users/macbook/Desktop/depression-text-analysis/output/results
