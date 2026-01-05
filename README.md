@@ -2,7 +2,7 @@
 
 A comprehensive text analysis project exploring linguistic patterns in psychologist-patient conversations to understand correlations between word usage and depression levels.
 
-## 📊 Project Overview
+## Project Overview
 
 This project analyzes **189 interview transcripts** from the AVEC 2017 Depression Recognition Challenge to identify words and linguistic patterns associated with depression using both simple and advanced text analysis techniques.
 
@@ -12,13 +12,13 @@ This project analyzes **189 interview transcripts** from the AVEC 2017 Depressio
 - Interview transcripts with psychologist-patient conversations
 
 **Analysis Approach** (following professor's recommendations):
-1. ✅ Start with simple word frequency distributions
-2. ✅ Analyze correlations between word frequencies and depression levels
-3. ✅ Progress to advanced text processing techniques
+1. Start with simple word frequency distributions
+2. Analyze correlations between word frequencies and depression levels
+3. Progress to advanced text processing techniques
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # 1. Activate virtual environment
@@ -70,7 +70,7 @@ depression-text-analysis/
 
 ---
 
-## 🔬 Analysis Pipeline
+## Analysis Pipeline
 
 The project implements a **13-step analysis pipeline**:
 
@@ -93,7 +93,7 @@ The project implements a **13-step analysis pipeline**:
 
 ---
 
-## 📈 Key Findings
+## Key Findings
 
 **Words Most Associated with Depression** (positive correlation):
 - "couldnt" (r=+0.278)
@@ -133,7 +133,7 @@ NGRAM_RANGE = (2, 3)         # Bigrams and trigrams
 
 ---
 
-## 📊 Output Files
+## Output Files
 
 Running the analysis generates:
 
@@ -150,7 +150,7 @@ Running the analysis generates:
 
 ---
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 | Library | Purpose |
 |---------|---------|
@@ -164,39 +164,9 @@ Running the analysis generates:
 
 ---
 
-## 🎓 For Semester Project Submission
 
-**Include in your report:**
 
-1. **Dataset Description**
-   - 189 participants from AVEC 2017 Challenge
-   - PHQ-8 depression scores
-   - Binary classification (depressed/non-depressed)
-
-2. **Methodology**
-   - Text preprocessing steps
-   - Word frequency analysis
-   - Correlation analysis (point-biserial)
-   - Advanced techniques (TF-IDF, N-grams, sentiment)
-
-3. **Results**
-   - Top depression-associated words
-   - Statistical significance (p-values, effect sizes)
-   - Visualizations from `output/figures/`
-
-4. **Discussion**
-   - Interpretation of findings
-   - Limitations (sample size, binary classification)
-   - Future work (machine learning, deep learning)
-
-5. **Code & Outputs**
-   - Python source code or Jupyter notebook
-   - Generated CSV files
-   - Publication-quality figures
-
----
-
-## 🔧 Troubleshooting
+## Troubleshooting
 
 **"NLTK data not found"**
 ```bash
@@ -216,7 +186,7 @@ This is a warning and doesn't affect analysis. The project works without WordNet
 
 ---
 
-## 📚 How It Works
+##  How It Works
 
 ### 1. Data Loading
 ```python
@@ -269,33 +239,10 @@ sentiment_scores = sentiment.analyze_batch(tokens)
 
 ---
 
-## 🎯 Next Steps
 
-1. **Machine Learning**: Train classifiers (Logistic Regression, SVM, Random Forest)
-2. **Deep Learning**: Experiment with LSTM, BERT, or GPT models
-3. **Feature Engineering**: Extract more linguistic features (POS tags, dependency parsing)
-4. **Cross-validation**: Implement k-fold validation for robust evaluation
-5. **Explainability**: Use SHAP or LIME to interpret model predictions
+## License
+
+This project uses the AVEC 2017 Depression Recognition Challenge dataset.
 
 ---
 
-## 📄 License
-
-This project uses the AVEC 2017 Depression Recognition Challenge dataset. Please cite the original dataset if using this code for research.
-
----
-
-## 🤝 Contributing
-
-This is a semester project for data analysis class. Feel free to fork and extend for your own research!
-
----
-
-## 📞 Support
-
-For questions about running the project:
-1. Check the troubleshooting section above
-2. Review `quick_start.py` for a working example
-3. Explore `notebooks/00_analysis.ipynb` for interactive examples
-
-**Happy Analyzing! 📊🔬**
