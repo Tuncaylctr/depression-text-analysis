@@ -121,41 +121,71 @@ class WordFrequencyAnalyzer:
     def words_differentiating_groups(self, 
                                      group1: int, 
                                      group2: int,
-                                     n: int = 20) -> Dict[str, Dict]:
+                                     n: int = 20,
+                                     min_freq_total: int = 3) -> Dict[str, Dict]:
         """
         Find words that best differentiate between two groups.
+        Uses normalized frequencies (per participant) to account for class imbalance.
         
         Args:
             group1: First group label
             group2: Second group label
             n: Number of differentiating words to return
+            min_freq_total: Minimum total frequency across both groups
             
         Returns:
-            Dictionary with 'group1_words' and 'group2_words' lists
+            Dictionary with 'more_in_group#' lists
         """
         freq1 = self.word_freq_by_group[group1]
         freq2 = self.word_freq_by_group[group2]
         
+        # Get group sizes for normalization
+        # Estimate from total word counts
+        total1 = sum(freq1.values())
+        total2 = sum(freq2.values())
+        
         all_words = set(freq1.keys()) | set(freq2.keys())
         
-        # Calculate ratio for each word
-        word_ratios = {}
+        # Calculate normalized difference for each word
+        word_scores = {}
         for word in all_words:
             f1 = freq1.get(word, 0)
             f2 = freq2.get(word, 0)
             
-            # Skip if word appears in less than 2 documents per group
-            if f1 < 2 or f2 < 2:
+            # Skip very rare words
+            if f1 + f2 < min_freq_total:
                 continue
             
-            ratio = f1 / f2 if f2 > 0 else float('inf')
-            word_ratios[word] = ratio
+            # Normalize by group size (proportional frequency)
+            norm_f1 = f1 / total1 if total1 > 0 else 0
+            norm_f2 = f2 / total2 if total2 > 0 else 0
+            
+            # Calculate normalized difference
+            # Positive = more in group1, Negative = more in group2
+            diff = norm_f1 - norm_f2
+            
+            # Also track ratio for ranking
+            if f2 > 0:
+                ratio = f1 / f2
+            elif f1 > 0:
+                ratio = float('inf')
+            else:
+                ratio = 1.0
+            
+            word_scores[word] = {
+                'diff': diff,
+                'ratio': ratio,
+                'freq1': f1,
+                'freq2': f2
+            }
         
-        # Sort by ratio
-        sorted_words = sorted(word_ratios.items(), key=lambda x: x[1])
+        # Sort by absolute difference (most distinctive words)
+        sorted_by_diff = sorted(word_scores.items(), key=lambda x: x[1]['diff'])
         
-        group2_words = sorted_words[:n]  # Highest ratio (more in group1)
-        group1_words = sorted_words[-n:][::-1]  # Lowest ratio (more in group2)
+        # Words more common in group2 (negative diff)
+        group2_words = sorted_by_diff[:n]
+        # Words more common in group1 (positive diff)  
+        group1_words = sorted_by_diff[-n:][::-1]
         
         return {
             f'more_in_group{group1}': [w[0] for w in group1_words],

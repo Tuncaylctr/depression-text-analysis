@@ -277,6 +277,47 @@ class DataVisualizer:
         """
         try:
             from wordcloud import WordCloud
+            from nltk.corpus import stopwords
+            
+            # Comprehensive stopwords/fillers to exclude from word clouds
+            exclude_words = {
+                # Fillers and disfluencies
+                'um', 'uh', 'yeah', 'like', 'really', 'kind', 'thing', 'things',
+                'sigh', 'mm', 'hmm', 'hm', 'mhm',
+                'laughter', 'laugh',
+                
+                # Fragments
+                'wan', 'na', 'gon', 'ta', 'gonna', 'wanna', 'bout',
+                
+                # Too generic conversational words
+                'one', 'two', 'get', 'got', 'go', 'went', 'come', 'came',
+                'make', 'made', 'take', 'took', 'say', 'said',
+                'know', 'dont', 'im', 'ive', 'think', 'feel',
+                'lot', 'way', 'time', 'day', 'week', 'year', 'years', 'ago',
+                'little', 'much', 'bit', 'stuff', 'guess', 'mean',
+                'well', 'good', 'thats', 'people', 'person', 'something',
+                'just', 'maybe', 'probably', 'actually',
+                'would', 'could', 'should', 'might',
+                'want', 'wanted', 'need', 'needed',
+                'told', 'asked', 'talked', 'tell',
+                'okay', 'alright', 'fine', 'sure',
+                
+                # Generic pronouns
+                'she', 'he', 'it', 'they', 'them', 'their',
+                
+                # Add English stopwords
+                *stopwords.words('english'),
+            }
+            
+            # Filter word frequencies - remove stopwords and very short words
+            filtered_freq = {
+                word: freq for word, freq in word_freq.items()
+                if word.lower() not in exclude_words and len(word) >= 4
+            }
+            
+            if not filtered_freq:
+                print(f"Warning: No words left after filtering for word cloud '{title}'")
+                return None, None
             
             fig, ax = plt.subplots(figsize=(12, 8))
             
@@ -285,8 +326,10 @@ class DataVisualizer:
                 height=600,
                 background_color='white',
                 colormap='viridis',
-                max_words=100
-            ).generate_from_frequencies(word_freq)
+                max_words=100,
+                min_font_size=10,
+                relative_scaling=0.5
+            ).generate_from_frequencies(filtered_freq)
             
             ax.imshow(wordcloud, interpolation='bilinear')
             ax.axis('off')

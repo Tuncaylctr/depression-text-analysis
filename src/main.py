@@ -139,17 +139,25 @@ class DepressionTextAnalysis:
               f"{len(filtered_freq)} unique words")
         print(f"Total word occurrences: {sum(filtered_freq.values())}")
         
-        # Get top words
-        top_words = self.freq_analyzer.get_top_words(n=config.TOP_N_WORDS)
+        # Get top words and FILTER out meaningless ones
+        all_top_words = self.freq_analyzer.get_top_words(n=100)  # Get more initially
         
-        print(f"\n--- Top {config.TOP_N_WORDS} Most Frequent Words ---")
+        # Filter using centralized stopwords
+        meaningful_stopwords = CustomStopwords.get_meaningful_stopwords()
+        top_words = [
+            (word, freq) for word, freq in all_top_words
+            if word.lower() not in meaningful_stopwords and len(word) >= 4
+        ][:config.TOP_N_WORDS]  # Take top N after filtering
+        
+        print(f"\n--- Top {config.TOP_N_WORDS} Most Frequent MEANINGFUL Words ---")
+        print("(Filtered: removed fillers, generic words, pronouns)")
         for i, (word, freq) in enumerate(top_words, 1):
             print(f"  {i:2d}. {word:15s} - {freq:4d} occurrences")
         
         # Save figure
         fig_path = Path(config.FIGURES_DIR) / "01_top_words.png"
         DataVisualizer.plot_top_words(top_words, 
-                                     title=f"Top {config.TOP_N_WORDS} Most Frequent Words",
+                                     title=f"Top {config.TOP_N_WORDS} Most Frequent Words (Filtered)",
                                      save_path=str(fig_path))
         print(f"\nSaved: {fig_path}")
         
@@ -195,20 +203,33 @@ class DepressionTextAnalysis:
             ratio = self.freq_analyzer.get_word_frequency_ratio(word, 1, 0)
             print(f"  {word:15s} (ratio: {ratio:.2f}x)")
         
-        # Create comparison plot
-        top_all = self.freq_analyzer.get_top_words(n=15)
-        words = [w for w, _ in top_all]
-        freq_group0 = [self.freq_analyzer.word_freq_by_group[0].get(w, 0) for w in words]
-        freq_group1 = [self.freq_analyzer.word_freq_by_group[1].get(w, 0) for w in words]
+        # Create comparison plot using DISTINCTIVE words (not overall top words)
+        # This shows words that are MORE characteristic of each group
+        print("\n--- Creating Group Comparison Visualization ---")
+        print("Using words that DIFFERENTIATE groups (not common words)")
+        
+        diff_words = self.freq_analyzer.words_differentiating_groups(0, 1, n=15)
+        
+        # Combine words from both groups to show distinctive vocabulary
+        words_group0 = diff_words['more_in_group0']  # Characteristic of non-depressed
+        words_group1 = diff_words['more_in_group1']  # Characteristic of depressed
+        
+        # Create balanced list - mix of both groups' distinctive words
+        all_distinctive_words = words_group1[:8] + words_group0[:7]  # Show more from depressed group
+        
+        # Get actual frequencies for these distinctive words
+        freq_group0 = [self.freq_analyzer.word_freq_by_group[0].get(w, 0) for w in all_distinctive_words]
+        freq_group1 = [self.freq_analyzer.word_freq_by_group[1].get(w, 0) for w in all_distinctive_words]
         
         fig_path = Path(config.FIGURES_DIR) / "02_frequency_comparison.png"
         DataVisualizer.plot_word_frequency_comparison(
-            words, freq_group0, freq_group1,
+            all_distinctive_words, freq_group0, freq_group1,
             group1_label="Non-Depressed (PHQ=0)",
             group2_label="Depressed (PHQ=1)",
             save_path=str(fig_path)
         )
         print(f"\nSaved: {fig_path}")
+        print("NOTE: This visualization now shows DISTINCTIVE words, not common words")
     
     def step5_correlation_analysis(self):
         """
@@ -409,43 +430,70 @@ class DepressionTextAnalysis:
         self.ngram_analyzer = NGramAnalyzer(n=2)
         self.ngram_analyzer.compute_ngrams_by_group(self.processed_tokens, phq_binary)
         
-        top_bigrams_0 = self.ngram_analyzer.get_top_ngrams(n=config.TOP_NGRAMS, group=0)
-        top_bigrams_1 = self.ngram_analyzer.get_top_ngrams(n=config.TOP_NGRAMS, group=1)
+        # Get DISTINCTIVE bigrams first (more in one group vs the other)
+        # This ensures NO OVERLAP between the two sides
+        # Get many initially to have enough after filtering
+        distinctive_bigrams = self.ngram_analyzer.get_distinctive_ngrams(1, 0, n=100)
         
-        print("\nTop Bigrams - Non-Depressed:")
-        for i, (ngram, freq) in enumerate(top_bigrams_0[:10], 1):
+        # distinctive_bigrams[0] = more in group 1 (depressed)
+        # distinctive_bigrams[1] = more in group 0 (non-depressed)
+        distinctive_depressed = distinctive_bigrams[0]  # (bigram, freq) tuples
+        distinctive_nondepressed = distinctive_bigrams[1]
+        
+        # Filter to keep only meaningful bigrams
+        meaningful_stopwords = CustomStopwords.get_meaningful_stopwords()
+        
+        def is_meaningful_bigram(bigram):
+            """Check if bigram contains only meaningful words"""
+            words = bigram.split()
+            # Require 4+ chars for stricter filtering
+            return all(
+                word.lower() not in meaningful_stopwords and len(word) >= 4
+                for word in words
+            )
+        
+        # Filter each group's distinctive bigrams
+        filtered_bigrams_depressed = [
+            (bg, freq) for bg, freq in distinctive_depressed
+            if is_meaningful_bigram(bg)
+        ][:config.TOP_NGRAMS]
+        
+        filtered_bigrams_nondepressed = [
+            (bg, freq) for bg, freq in distinctive_nondepressed
+            if is_meaningful_bigram(bg)
+        ][:config.TOP_NGRAMS]
+        
+        print("\nDISTINCTIVE Bigrams - Non-Depressed (Filtered):")
+        print("(Bigrams MORE common in non-depressed group)")
+        for i, (ngram, freq) in enumerate(filtered_bigrams_nondepressed[:10], 1):
             print(f"  {i:2d}. '{ngram}' - {freq} occurrences")
         
-        print("\nTop Bigrams - Depressed:")
-        for i, (ngram, freq) in enumerate(top_bigrams_1[:10], 1):
+        print("\nDISTINCTIVE Bigrams - Depressed (Filtered):")
+        print("(Bigrams MORE common in depressed group)")
+        for i, (ngram, freq) in enumerate(filtered_bigrams_depressed[:10], 1):
             print(f"  {i:2d}. '{ngram}' - {freq} occurrences")
         
-        # Get distinctive bigrams
-        distinctive_bigrams = self.ngram_analyzer.get_distinctive_ngrams(1, 0, n=10)
-        print("\nMost Distinctive Bigrams:")
-        print("  More in Depressed:", [ng for ng, _ in distinctive_bigrams[0][:5]])
-        print("  More in Non-Depressed:", [ng for ng, _ in distinctive_bigrams[1][:5]])
-        
-        # Save bigrams
+        # Save distinctive bigrams
         bigrams_df = pd.DataFrame({
-            'bigram': [ng for ng, _ in top_bigrams_0 + top_bigrams_1],
-            'frequency': [freq for _, freq in top_bigrams_0 + top_bigrams_1],
-            'group': [0]*len(top_bigrams_0) + [1]*len(top_bigrams_1)
+            'bigram': [ng for ng, _ in filtered_bigrams_nondepressed + filtered_bigrams_depressed],
+            'frequency': [freq for _, freq in filtered_bigrams_nondepressed + filtered_bigrams_depressed],
+            'group': [0]*len(filtered_bigrams_nondepressed) + [1]*len(filtered_bigrams_depressed)
         })
         bigrams_path = Path(config.RESULTS_DIR) / "bigrams.csv"
         bigrams_df.to_csv(bigrams_path, index=False)
-        print(f"\nSaved bigrams: {bigrams_path}")
+        print(f"\nSaved distinctive bigrams: {bigrams_path}")
         
-        # Create visualization
+        # Create visualization with DISTINCTIVE bigrams (no overlap!)
         fig_path = Path(config.FIGURES_DIR) / "07_ngram_comparison.png"
         DataVisualizer.plot_ngram_comparison(
-            top_bigrams_0, top_bigrams_1,
+            filtered_bigrams_nondepressed, filtered_bigrams_depressed,
             group1_label="Non-Depressed",
             group2_label="Depressed",
             n=15,
             save_path=str(fig_path)
         )
         print(f"Saved N-gram comparison: {fig_path}")
+        print("NOTE: Chart now shows DISTINCTIVE bigrams with NO overlap between groups")
         
         # Analyze trigrams
         print("\n--- Trigram Analysis ---")

@@ -161,10 +161,41 @@ class TextPreprocessor:
 class CustomStopwords:
     """Manage custom stopword lists."""
     
-    # Words common in interview setting that might not be informative
+    # Words common in interview setting that are not informative
+    # This includes fillers, conversational noise, and generic verbs/pronouns
     INTERVIEW_STOPWORDS = {
+        # Fillers and speech disfluencies
         'um', 'uh', 'yeah', 'like', 'really', 'kind', 'thing', 'things',
         'lot', 'way', 'days', 'time', 'day', 'week', 'ellie', 'l_a',
+        'sigh', 'mm', 'hmm', 'hm', 'mhm', 'uh-huh', 'mm-hmm',
+        
+        # Laughter and non-verbal sounds
+        'laughter', 'laugh', 'chuckle',
+        
+        # Contractions and fragments
+        'wan', 'na', 'gon', 'ta', 'gonna', 'wanna', 'gotta',
+        'bout', 'cause', 'em',
+        
+        # Generic conversational words
+        'guess', 'say', 'said', 'mean', 'means', 'saying',
+        'one', 'two', 'something', 'anything', 'everything',
+        'someone', 'anyone', 'everybody',
+        
+        # Generic pronouns that don't add meaning
+        'she', 'he', 'it', 'they', 'them', 'their',
+        
+        # Too generic to be meaningful
+        'get', 'got', 'getting', 'go', 'going', 'went', 'gone',
+        'make', 'making', 'made', 'take', 'taking', 'took',
+        'come', 'coming', 'came',
+        
+        # Interview-specific
+        'know', 'dont', 'im', 'ive', 'id', 'ill', 'youre', 'thats',
+        'think', 'thought', 'thinking', 'feel', 'feeling', 'felt',
+        
+        # Generic time/quantity
+        'little', 'much', 'many', 'bit', 'stuff',
+        'years', 'year', 'ago', 'back', 'right', 'now',
     }
     
     @staticmethod
@@ -184,6 +215,64 @@ class CustomStopwords:
             stopwords_set.update(CustomStopwords.INTERVIEW_STOPWORDS)
         
         return stopwords_set
+    
+    @staticmethod
+    def get_meaningful_stopwords() -> Set[str]:
+        """
+        Get comprehensive stopwords for visualization filtering.
+        Includes ALL generic, filler, and meaningless words.
+        
+        Returns:
+            Set of stopwords for aggressive filtering
+        """
+        return {
+            # Fillers and disfluencies
+            'um', 'uh', 'yeah', 'like', 'really', 'kind', 'thing', 'things',
+            'sigh', 'mm', 'hmm', 'hm', 'mhm', 'uh-huh', 'mm-hmm',
+            'laughter', 'laugh', 'chuckle',
+            
+            # Fragments and contractions
+            'wan', 'na', 'gon', 'ta', 'gonna', 'wanna', 'gotta',
+            'bout', 'cause', 'em',
+            
+            # Too generic conversational
+            'one', 'two', 'get', 'got', 'getting', 'go', 'going', 'went', 'gone',
+            'come', 'coming', 'came',
+            'make', 'making', 'made', 'take', 'taking', 'took', 'taken',
+            'say', 'saying', 'said', 'tell', 'telling', 'told', 'talked',
+            'know', 'knowing', 'knew', 'known',
+            'think', 'thinking', 'thought', 'feel', 'feeling', 'felt',
+            'want', 'wanting', 'wanted', 'need', 'needing', 'needed',
+            'would', 'could', 'should', 'might', 'must',
+            
+            # Generic descriptors
+            'well', 'good', 'bad', 'nice', 'fine', 'okay', 'alright',
+            'just', 'maybe', 'probably', 'actually', 'basically',
+            
+            # People/pronouns
+            'people', 'person', 'someone', 'anyone', 'everyone',
+            'something', 'anything', 'everything',
+            'she', 'he', 'it', 'they', 'them', 'their', 'theyre',
+            'thats', 'dont', 'im', 'ive', 'id', 'ill', 'youre',
+            
+            # Time/quantity
+            'time', 'times', 'day', 'days', 'week', 'weeks', 
+            'year', 'years', 'ago', 'back', 'now', 'then',
+            'lot', 'lots', 'much', 'many', 'more', 'most',
+            'little', 'bit', 'few',
+            
+            # Generic verbs
+            'asked', 'ask', 'asking',
+            'guess', 'guessing', 'guessed',
+            'mean', 'meaning', 'meant',
+            'stuff', 'give', 'gave', 'given',
+            
+            # Interview artifacts
+            'ellie', 'l_a',
+            
+            # Add all English stopwords
+            *stopwords.words('english'),
+        }
 
 
 if __name__ == "__main__":
